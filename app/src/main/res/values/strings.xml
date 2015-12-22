@@ -6,7 +6,7 @@
     <string name="status_idle">Status: Idle</string>
     <string name="status_downloading">Status: Downloading</string>
     <string name="status_downloaded">Status: Downloaded</string>
-    <string name="url">http://ssauctf.ru/task_files/steg50.png</string>
+    <string name="url">https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcQruZCn5YeIV8iFcHQPre3JxrMpX7IUOVIV7HSZFURirFTYZwmUMQ</string>
     <string name="loading_error">Loading error</string>
 
 </resources>
