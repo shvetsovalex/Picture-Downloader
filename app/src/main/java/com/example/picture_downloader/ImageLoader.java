@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.content.AsyncTaskLoader;
+import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -23,9 +24,11 @@ public class ImageLoader extends AsyncTaskLoader<Integer> {
     protected final static int ERROR_STATUS = 3;
     protected final static int MAX_PROGRESS = 100;
     protected final static String ACTION_PROGRESS = "com.example.picture_downloader.Status";
-
+    protected static final String STATUS_NAME_EXTRA = "status";
+    protected static final String PROGRESS_NAME_EXTRA = "progress";
     protected final static String fileName = "pic.jpg";
 
+    private static final String TAG = "ImageLoader";
     private String url;
     private int progress;
     private int status;
@@ -33,30 +36,24 @@ public class ImageLoader extends AsyncTaskLoader<Integer> {
     private String file_path;
     private Context context;
 
-
-    public ImageLoader(Context context) {
-        super(context);
-    }
-
     public ImageLoader(Context context, String url, String file_path) {
         super(context);
         this.url = url;
         this.file_path = file_path;
         this.status = IDLE_STATUS;
         this.context = context;
-
     }
 
     @Override
     public Integer loadInBackground() {
         status = DOWNLOADING_STATUS;
-        System.out.println(status + "start loading");
+        Log.d(TAG, status + "start loading");
         try {
             URL url = new URL(this.url);
             URLConnection connection = url.openConnection();
             connection.connect();
             int lengthOfFile = connection.getContentLength();
-            System.out.println(lengthOfFile); //log
+            Log.d(TAG, lengthOfFile + "");
             InputStream input = new BufferedInputStream(url.openStream(), 8192);
 
             OutputStream output = new FileOutputStream(new File(Environment.getExternalStorageDirectory() + "/" + this.fileName));
@@ -67,7 +64,7 @@ public class ImageLoader extends AsyncTaskLoader<Integer> {
             int count;
             while ((count = input.read(data)) != -1) {
                 total += count;
-                progress = (int)((total*100)/lengthOfFile);
+                progress = (int) ((total * 100) / lengthOfFile);
                 output.write(data, 0, count);
                 publishStatus();
             }
@@ -77,6 +74,8 @@ public class ImageLoader extends AsyncTaskLoader<Integer> {
             input.close();
 
         } catch (IOException e) {
+            status = ERROR_STATUS;
+            Log.e(TAG, e.getMessage());
             publishStatus();
             return null;
         }
@@ -86,17 +85,12 @@ public class ImageLoader extends AsyncTaskLoader<Integer> {
         return null;
     }
 
-    public int getStatus() {
-        return status;
-    }
-
-    public int getProgress() {
-        return progress;
-    }
-
     private void publishStatus() {
         Intent intent = new Intent(ACTION_PROGRESS);
-        intent.putExtra("status", status);
+        intent.putExtra(STATUS_NAME_EXTRA, status);
+        if(status == DOWNLOADING_STATUS) {
+            intent.putExtra(PROGRESS_NAME_EXTRA, progress);
+        }
         context.sendBroadcast(intent);
     }
 }
