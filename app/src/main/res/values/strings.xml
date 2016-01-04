@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">Picture-Downloader</string>
+    <string name="download">Download</string>
+    <string name="downloading">Downloading</string>
+    <string name="downloaded">Open</string>
+    <string name="status_idle">Status: Idle</string>
+    <string name="status_downloading">Status: Downloading</string>
+    <string name="status_downloaded">Status: Downloaded</string>
+    <string name="loading_error">Loading error</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>
