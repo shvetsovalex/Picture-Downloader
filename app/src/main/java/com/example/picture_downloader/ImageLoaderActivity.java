@@ -11,17 +11,18 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import com.example.picture_downloader.ImageLoader;
 
 public class ImageLoaderActivity extends ActionBarActivity implements LoaderManager.LoaderCallbacks<Integer> {
-    private static final String TAG = "ImageLoaderActivity";
+    private final String TAG = this.getClass().getName();
     private static final String url = "http://vignette4.wikia.nocookie.net/rio/images/9/91/Rio-2-Official-Trailer-3-40.jpg/revision/latest?cb=20131002062355";
     private static final String DOWNLOADED_STATUS = "downloaded";
     private Loader imageLoader;
@@ -31,14 +32,20 @@ public class ImageLoaderActivity extends ActionBarActivity implements LoaderMana
     private ProgressBar progressBar;
     private ProgressReceiver progressReceiver;
     private int status;
-    private int downloaded;
+    private int progress;
     private IntentFilter intentFilter;
-//обработать правильное сворачивание приложение, а также поворот экрана во время загрузки
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        initAppComponents(savedInstanceState);
+        progressReceiver = new ProgressReceiver();
+        intentFilter = new IntentFilter(ImageLoader.ACTION_PROGRESS);
+        this.registerReceiver(progressReceiver, intentFilter);
+    }
+
+    private void initAppComponents(Bundle savedInstanceState) {
         btnLoad = (Button) findViewById(R.id.btnLoad);
 
         statusLabel = (TextView) findViewById(R.id.status_label);
@@ -50,16 +57,12 @@ public class ImageLoaderActivity extends ActionBarActivity implements LoaderMana
             getSupportLoaderManager().initLoader(LOADER_IMAGE_ID, new Bundle(), ImageLoaderActivity.this);
         }
 
-        if (savedInstanceState != null && savedInstanceState.getInt(DOWNLOADED_STATUS) == 1) {
-            downloaded = 1;
-            status = ImageLoader.DOWNLOADED_STATUS;
-            statusLabel.setText(R.string.status_downloaded);
-            btnLoad.setText(R.string.downloaded);
+        if (savedInstanceState != null) {
+            status = savedInstanceState.getInt(ImageLoader.STATUS_EXTRA);
+            progress = savedInstanceState.getInt(ImageLoader.PROGRESS_EXTRA);
         } else
             status = ImageLoader.IDLE_STATUS;
-        progressReceiver = new ProgressReceiver();
-        intentFilter = new IntentFilter(ImageLoader.ACTION_PROGRESS);
-        this.registerReceiver(progressReceiver, intentFilter);
+        updateStatus(status, progress);
     }
 
     @Override
@@ -106,7 +109,6 @@ public class ImageLoaderActivity extends ActionBarActivity implements LoaderMana
                 btnLoad.setText(R.string.download);
 
                 progressBar.setVisibility(View.GONE);
-                progressBar.setMax(ImageLoader.MAX_PROGRESS);//установить в верстке
                 progressBar.setProgress(0);
 
                 statusLabel.setText(R.string.status_idle);
@@ -115,7 +117,7 @@ public class ImageLoaderActivity extends ActionBarActivity implements LoaderMana
             case ImageLoader.DOWNLOADING_STATUS: {
                 progressBar.setVisibility(View.VISIBLE);
                 progressBar.setProgress(progress);
-                Log.d(TAG, "" + progress);
+                Log.d(TAG, String.valueOf(progress));
                 btnLoad.setEnabled(false);
 
                 statusLabel.setText(R.string.status_downloading);
@@ -129,7 +131,6 @@ public class ImageLoaderActivity extends ActionBarActivity implements LoaderMana
                 btnLoad.setText(R.string.downloaded);
 
                 statusLabel.setText(R.string.status_downloaded);
-                downloaded = 1;
                 this.status = ImageLoader.DOWNLOADED_STATUS;
             }
             break;
@@ -148,20 +149,16 @@ public class ImageLoaderActivity extends ActionBarActivity implements LoaderMana
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(DOWNLOADED_STATUS, downloaded);
+        outState.putInt(ImageLoader.STATUS_EXTRA, status);
+        outState.putInt(ImageLoader.PROGRESS_EXTRA, progress);
     }
 
     class ProgressReceiver extends BroadcastReceiver {
-        private int status;
-        private int progress;
-        public ProgressReceiver() {
-        }
-
         @Override
         public void onReceive(Context context, Intent intent) {
-            updateStatus(intent.getIntExtra(ImageLoader.STATUS_NAME_EXTRA, ImageLoader.ERROR_STATUS),
-                    intent.getIntExtra(ImageLoader.PROGRESS_NAME_EXTRA, 0));
+            progress = intent.getIntExtra(ImageLoader.PROGRESS_EXTRA, 0);
+            status = intent.getIntExtra(ImageLoader.STATUS_EXTRA, ImageLoader.ERROR_STATUS);
+            updateStatus(status, progress);
         }
-
     }
 }

@@ -22,13 +22,12 @@ public class ImageLoader extends AsyncTaskLoader<Integer> {
     protected final static int DOWNLOADED_STATUS = 1;
     protected final static int IDLE_STATUS = 2;
     protected final static int ERROR_STATUS = 3;
-    protected final static int MAX_PROGRESS = 100;
     protected final static String ACTION_PROGRESS = "com.example.picture_downloader.Status";
-    protected static final String STATUS_NAME_EXTRA = "status";
-    protected static final String PROGRESS_NAME_EXTRA = "progress";
+    protected static final String STATUS_EXTRA = "status";
+    protected static final String PROGRESS_EXTRA = "progress";
     protected final static String fileName = "pic.jpg";
 
-    private static final String TAG = "ImageLoader";
+    private final String TAG = this.getClass().getName();;
     private String url;
     private int progress;
     private int status;
@@ -53,7 +52,7 @@ public class ImageLoader extends AsyncTaskLoader<Integer> {
             URLConnection connection = url.openConnection();
             connection.connect();
             int lengthOfFile = connection.getContentLength();
-            Log.d(TAG, lengthOfFile + "");
+            Log.d(TAG, String.valueOf(lengthOfFile));
             InputStream input = new BufferedInputStream(url.openStream(), 8192);
 
             OutputStream output = new FileOutputStream(new File(Environment.getExternalStorageDirectory() + "/" + this.fileName));
@@ -87,9 +86,9 @@ public class ImageLoader extends AsyncTaskLoader<Integer> {
 
     private void publishStatus() {
         Intent intent = new Intent(ACTION_PROGRESS);
-        intent.putExtra(STATUS_NAME_EXTRA, status);
+        intent.putExtra(STATUS_EXTRA, status);
         if(status == DOWNLOADING_STATUS) {
-            intent.putExtra(PROGRESS_NAME_EXTRA, progress);
+            intent.putExtra(PROGRESS_EXTRA, progress);
         }
         context.sendBroadcast(intent);
     }
